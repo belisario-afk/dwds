@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a15;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg,#2d2f5b,#5522aa);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg,#463a8f,#7a39d4);
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overscroll-behavior: none;
+}
+
+.fade-in {
+  animation: fadeIn 0.8s ease forwards;
+  opacity: 0;
+}
+
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
+.glass {
+  background: rgba(20,20,35,0.55);
+  backdrop-filter: blur(14px) saturate(1.25);
+  box-shadow: 0 4px 28px -6px rgba(0,0,0,0.65), inset 0 0 0 1px rgba(255,255,255,0.05);
+}
+
+.button-primary {
+  @apply px-4 py-2 rounded-md bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-600 text-white font-medium shadow hover:shadow-lg transition;
+}
+
+.button-danger {
+  @apply px-4 py-2 rounded-md bg-gradient-to-r from-rose-600 to-red-700 text-white font-medium shadow hover:shadow-lg transition;
+}
+
+.badge {
+  @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold;
+}
+
+.skin-cosmic   { --accent: #6ad8ff; --accent2: #b460ff; }
+.skin-grid     { --accent: #00ff9c; --accent2: #00b3ff; }
+.skin-cyber    { --accent: #ff008c; --accent2: #00e1ff; }
+.skin-nature   { --accent: #5cff3d; --accent2: #2ba66b; }
+
+.skin-gradient {
+  background: linear-gradient(135deg,var(--accent) 0%, var(--accent2) 100%);
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+#performance-stats {
+  position: fixed;
+  top: 0;
+  left: 0;
+  font-size: 11px;
+  font-family: monospace;
+  pointer-events: none;
+  padding: 4px 8px;
+  background: rgba(0,0,0,0.4);
+  color: #7dffec;
+  z-index: 80;
+}
