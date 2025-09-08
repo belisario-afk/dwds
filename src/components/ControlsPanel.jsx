@@ -14,7 +14,13 @@ export default function ControlsPanel() {
     spotifyToken,
     setSpotifyToken,
     spatialPreset,
-    setSpatialPreset
+    setSpatialPreset,
+    masterGain,
+    setMasterGain,
+    loudnessBoost,
+    setLoudnessBoost,
+    enhancerAmount,
+    setEnhancerAmount
   } = useAppState();
   const {
     isReady,
@@ -27,7 +33,8 @@ export default function ControlsPanel() {
     currentTrack,
     disconnectSpotify,
     isSpotifyActive,
-    restartSpatialPreset
+    restartSpatialPreset,
+    applyAudioTuning
   } = useAudioEngine();
 
   function onFileSelected(e) {
@@ -37,11 +44,13 @@ export default function ControlsPanel() {
   }
 
   const presets = [
-    { id: "orbit", label: "Orbit (Default)" },
+    { id: "orbit", label: "Orbit" },
     { id: "inside_you", label: "Inside You" },
-    { id: "far_behind_to_close", label: "Far Behind → Close" },
-    { id: "spiral", label: "Ascending Spiral" },
-    { id: "pulse_in_out", label: "Pulse In-Out" }
+    { id: "far_behind_to_close", label: "Far → Close" },
+    { id: "spiral", label: "Spiral" },
+    { id: "pulse_in_out", label: "Pulse In-Out" },
+    { id: "enveloping_sphere", label: "Envelop Sphere" },
+    { id: "overhead_rain", label: "Overhead Rain" }
   ];
 
   return (
@@ -91,9 +100,9 @@ export default function ControlsPanel() {
         {currentTrack && (
           <div className="text-[11px] leading-tight p-2 rounded bg-black/30">
             <div className="opacity-60">Track</div>
-            <div className="font-medium">{currentTrack.title}</div>
+            <div className="font-medium truncate">{currentTrack.title}</div>
             {currentTrack.artist && (
-              <div className="opacity-75">{currentTrack.artist}</div>
+              <div className="opacity-75 truncate">{currentTrack.artist}</div>
             )}
           </div>
         )}
@@ -102,7 +111,7 @@ export default function ControlsPanel() {
       <div className="space-y-3">
         <RangeSlider
           label="Intensity"
-            min={0}
+          min={0}
           max={1}
           step={0.01}
           value={intensity}
@@ -148,10 +157,50 @@ export default function ControlsPanel() {
           onClick={restartSpatialPreset}
           className="mt-1 w-full text-[11px] px-3 py-1.5 rounded bg-brand-700 hover:bg-brand-600 transition"
         >
-          Restart Preset Motion
+          Restart Motion
         </button>
+      </div>
+
+      <div className="pt-2 border-t border-white/10 space-y-3">
+        <div className="text-xs font-semibold uppercase tracking-wider opacity-60">
+          Audio Engine
+        </div>
+        <RangeSlider
+          label="Master Gain"
+          min={0}
+          max={2}
+          step={0.01}
+          value={masterGain}
+          onChange={(v) => {
+            setMasterGain(v);
+            applyAudioTuning({ masterGain: v });
+          }}
+        />
+        <RangeSlider
+          label="Enhancer"
+          min={0}
+          max={1}
+          step={0.01}
+          value={enhancerAmount}
+          onChange={(v) => {
+            setEnhancerAmount(v);
+            applyAudioTuning({ enhancerAmount: v });
+          }}
+        />
+        <div className="flex items-center justify-between text-xs">
+          <span>Loudness Boost</span>
+          <Toggle
+            active={loudnessBoost}
+            onClick={() => {
+              const next = !loudnessBoost;
+              setLoudnessBoost(next);
+              applyAudioTuning({ loudnessBoost: next });
+            }}
+            label={loudnessBoost ? "On" : "Off"}
+          />
+        </div>
         <p className="text-[10px] opacity-50 leading-snug">
-          Presets define multi-channel panner paths (16 nodes). Some evolve over time (e.g., Far Behind → Close).
+          Loudness & enhancer apply multi-band shelving + compression. Protect your ears—monitor levels.
         </p>
       </div>
 
@@ -182,9 +231,6 @@ export default function ControlsPanel() {
             Disconnect
           </button>
         </div>
-        <p className="text-[10px] opacity-50 leading-snug">
-          Scopes: streaming user-read-playback-state user-modify-playback-state user-read-email user-read-private
-        </p>
       </div>
 
       {error && (

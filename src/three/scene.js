@@ -12,7 +12,7 @@ let currentProps = {};
 let analyserGetter = () => null;
 let intensityRef = 0.5;
 
-const listener = new THREE.AudioListener(); // optional for future direct audio in scene
+const listener = new THREE.AudioListener();
 
 export function initScene(container, { skin, intensity, cameraMode, getAnalyser }) {
   scene = new THREE.Scene();
@@ -36,7 +36,6 @@ export function initScene(container, { skin, intensity, cameraMode, getAnalyser 
 
   container.appendChild(renderer.domElement);
 
-  // Lights
   const hemi = new THREE.HemisphereLight("#7dd3fc", "#312e81", 0.5);
   scene.add(hemi);
   const dir = new THREE.DirectionalLight("#ffffff", 1.2);
@@ -100,7 +99,6 @@ function animate() {
     starfield.update(dt, analyser.array, level, intensityRef);
   }
 
-  // Camera
   if (currentProps.cameraMode === "seated") {
     const targetPos = seatedCameraTarget.position;
     camera.position.lerp(

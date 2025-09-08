@@ -19,8 +19,13 @@ const useStoreBase = create((set) => ({
   spatialPreset: "orbit",
   setSpatialPreset: (spatialPreset) => set({ spatialPreset }),
   presetVersion: 0,
-  restartPreset: () =>
-    set((s) => ({ presetVersion: s.presetVersion + 1 })) // triggers re-init within audio engine
+  restartPreset: () => set((s) => ({ presetVersion: s.presetVersion + 1 })),
+  masterGain: 1,
+  setMasterGain: (masterGain) => set({ masterGain }),
+  loudnessBoost: false,
+  setLoudnessBoost: (loudnessBoost) => set({ loudnessBoost }),
+  enhancerAmount: 0.4,
+  setEnhancerAmount: (enhancerAmount) => set({ enhancerAmount })
 }));
 
 const AppStateContext = createContext(null);

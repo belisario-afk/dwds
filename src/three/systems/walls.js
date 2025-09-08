@@ -23,14 +23,14 @@ float noise(vec3 p){
 }
 
 void main(){
-  float t = uTime * 0.2;
+  float t = uTime * 0.25;
   float radial = length(vUv - 0.5);
   float glow = smoothstep(0.5, 0.2 + 0.15 * uIntensity, radial);
-  float ripple = sin((radial * 40. - t * 14.) - uLevel * 12.0) * 0.5 + 0.5;
-  float flicker = noise(vec3(vUv * 25.0, t)) * 0.35;
+  float ripple = sin((radial * 42. - t * 13.) - uLevel * 14.0) * 0.5 + 0.5;
+  float flicker = noise(vec3(vUv * 28.0, t)) * 0.35;
   vec3 col = mix(uColorA, uColorB, ripple + flicker * uIntensity);
   col *= (1.0 - glow);
-  col += vec3(0.3,0.5,0.8) * pow(1.0 - radial, 4.0) * (0.4 + uLevel * 0.8);
+  col += vec3(0.3,0.5,0.8) * pow(1.0 - radial, 4.0) * (0.35 + uLevel * 0.9);
   gl_FragColor = vec4(col, 0.85);
 }
 `;

@@ -1,8 +1,8 @@
 {
   "name": "immersive-music-room",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
-  "description": "🎶 The Immersive Music Room (16D Sound Chamber) - A 3D virtual chamber with enhanced 16‑channel spatial audio presets and reactive visuals.",
+  "description": "🎶 The Immersive Music Room (16D Sound Chamber) - Advanced 16‑channel spatial audio with immersive motion presets, loudness & psychoacoustic enhancement.",
   "type": "module",
   "scripts": {
     "dev": "vite",

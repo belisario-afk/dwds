@@ -20,6 +20,7 @@ export function useAudioEngine() {
   const spotifyRef = useRef(null);
   const frameRef = useRef(0);
   const lastTimeRef = useRef(performance.now());
+  const audioGraphRef = useRef(null);
 
   const {
     intensity,
@@ -28,7 +29,10 @@ export function useAudioEngine() {
     setAnalyserActive,
     spatialPreset,
     presetVersion,
-    restartPreset
+    restartPreset,
+    masterGain,
+    loudnessBoost,
+    enhancerAmount
   } = useAppState((s) => s);
 
   const initUserAudio = useCallback(async () => {
@@ -41,14 +45,20 @@ export function useAudioEngine() {
       if (audioCtxRef.current.state === "suspended") {
         await audioCtxRef.current.resume();
       }
-      if (!analyserRef.current) {
-        const { analyser, gainNode, masterOut } = createAudioGraph(audioCtxRef.current);
-        analyserRef.current = analyser;
+      if (!audioGraphRef.current) {
+        audioGraphRef.current = createAudioGraph(audioCtxRef.current);
+        analyserRef.current = audioGraphRef.current.analyser;
         pannerSystemRef.current = create16DPannerSystem(
           audioCtxRef.current,
-          masterOut,
+          audioGraphRef.current.preGain,
           () => spatialPreset
         );
+        // Apply initial tuning
+        audioGraphRef.current.applyTuning({
+          enhancerAmount,
+          loudnessBoost,
+          masterGain
+        });
       }
       setIsReady(true);
       setAudioMode("Local");
@@ -56,7 +66,14 @@ export function useAudioEngine() {
     } catch (e) {
       setError(e.message);
     }
-  }, [setAudioMode, setAnalyserActive, spatialPreset]);
+  }, [
+    setAudioMode,
+    setAnalyserActive,
+    spatialPreset,
+    enhancerAmount,
+    loudnessBoost,
+    masterGain
+  ]);
 
   const stopExistingSource = () => {
     try {
@@ -108,7 +125,10 @@ export function useAudioEngine() {
       await initUserAudio();
       const arrayBuf = await file.arrayBuffer();
       bufferRef.current = await loadAudioBuffer(audioCtxRef.current, arrayBuf);
-      setCurrentTrack({ title: file.name.replace(/\.[a-z0-9]+$/i, ""), artist: "Local File" });
+      setCurrentTrack({
+        title: file.name.replace(/\.[a-z0-9]+$/i, ""),
+        artist: "Local File"
+      });
       startPlayback();
     } catch (e) {
       setError("Failed to load file: " + e.message);
@@ -149,10 +169,13 @@ export function useAudioEngine() {
     setIsPlaying(false);
   };
 
-  // Restart preset motion externally
   const restartSpatialPreset = () => {
-    // bumping presetVersion in store triggers new build on next frame (handled in update loop)
     restartPreset();
+  };
+
+  const applyAudioTuning = (changes) => {
+    if (!audioGraphRef.current) return;
+    audioGraphRef.current.applyTuning(changes);
   };
 
   // Per-frame analyser & panner update
@@ -187,6 +210,11 @@ export function useAudioEngine() {
     };
   }, [intensity, spatialPreset, presetVersion]);
 
+  // React to tuning changes from state (in case of external triggers)
+  useEffect(() => {
+    applyAudioTuning({ masterGain, enhancerAmount, loudnessBoost });
+  }, [masterGain, enhancerAmount, loudnessBoost]);
+
   return {
     isReady,
     isPlaying,
@@ -199,6 +227,7 @@ export function useAudioEngine() {
     disconnectSpotify,
     currentTrack,
     isSpotifyActive,
-    restartSpatialPreset
+    restartSpatialPreset,
+    applyAudioTuning
   };
 }

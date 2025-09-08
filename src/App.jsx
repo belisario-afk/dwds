@@ -39,16 +39,14 @@ export default function App() {
       <Modal open={showHelp} onClose={() => setShowHelp(false)} title="Quick Start">
         <ol className="list-decimal ml-5 space-y-2 text-sm leading-relaxed">
           <li>Upload MP3 or enter Spotify token.</li>
-          <li>Select a Spatial Preset (Inside You, Far Behind → Close, Orbit, Spiral).</li>
-          <li>Click Enable Audio if prompted (browser gesture requirement).</li>
-          <li>Adjust Intensity & Camera Mode.</li>
-          <li>Restart approach preset when desired.</li>
+          <li>Select a Spatial Preset (e.g. Enveloping Sphere, Far Behind → Close).</li>
+          <li>Enable Loudness / Enhancer cautiously (can get very loud).</li>
+          <li>Adjust Intensity, Master Gain & Camera Mode.</li>
+          <li>Restart a preset motion path anytime.</li>
         </ol>
         <p className="text-xs mt-4 opacity-70">
-          Spotify requires a Premium account. Provide an OAuth access token with streaming scopes.
-        </p>
-        <p className="text-xs mt-2 opacity-60">
-          New: Advanced 16-channel spatial engine with dynamic preset motion envelopes.
+          New advanced psychoacoustic chain: enhancer bands + multi-stage dynamics for loud,
+          clean immersion.
         </p>
         <div className="mt-3 text-[11px] font-mono opacity-50">
           Active Preset: {spatialPreset}

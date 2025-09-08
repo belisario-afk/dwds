@@ -1,6 +1,5 @@
 /**
  * Basic wrapper around Spotify Web Playback SDK.
- * NOTE: For production you must host a proper OAuth flow; this expects a valid access token passed directly.
  */
 export class SpotifyManager {
   constructor({ token, onError, onTrack, audioCtx, pannerSystem }) {
@@ -10,7 +9,6 @@ export class SpotifyManager {
     this.audioCtx = audioCtx;
     this.pannerSystem = pannerSystem;
     this.player = null;
-    this.pollInterval = null;
   }
 
   setToken(token) {
@@ -36,7 +34,7 @@ export class SpotifyManager {
     this.player = new window.Spotify.Player({
       name: "16D Sound Chamber",
       getOAuthToken: (cb) => cb(this.token),
-      volume: 0.8
+      volume: 0.85
     });
     this.player.addListener("initialization_error", ({ message }) => this.onError(message));
     this.player.addListener("authentication_error", ({ message }) => this.onError(message));
@@ -55,7 +53,6 @@ export class SpotifyManager {
     });
 
     await this.player.connect();
-
     setTimeout(() => {
       this.transferPlayback();
     }, 1200);
@@ -91,6 +88,5 @@ export class SpotifyManager {
       this.player.disconnect();
       this.player = null;
     }
-    if (this.pollInterval) clearInterval(this.pollInterval);
   }
 }
