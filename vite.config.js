@@ -4,7 +4,6 @@ import react from "@vitejs/plugin-react";
 export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
-    // Use relative base so the build works under GitHub Pages /<user>/<repo>/ path
     base: "./",
     build: {
       sourcemap: mode !== "production",

@@ -12,7 +12,9 @@ export default function ControlsPanel() {
     cameraMode,
     setCameraMode,
     spotifyToken,
-    setSpotifyToken
+    setSpotifyToken,
+    spatialPreset,
+    setSpatialPreset
   } = useAppState();
   const {
     isReady,
@@ -24,7 +26,8 @@ export default function ControlsPanel() {
     error,
     currentTrack,
     disconnectSpotify,
-    isSpotifyActive
+    isSpotifyActive,
+    restartSpatialPreset
   } = useAudioEngine();
 
   function onFileSelected(e) {
@@ -32,6 +35,14 @@ export default function ControlsPanel() {
     if (!file) return;
     loadFile(file);
   }
+
+  const presets = [
+    { id: "orbit", label: "Orbit (Default)" },
+    { id: "inside_you", label: "Inside You" },
+    { id: "far_behind_to_close", label: "Far Behind → Close" },
+    { id: "spiral", label: "Ascending Spiral" },
+    { id: "pulse_in_out", label: "Pulse In-Out" }
+  ];
 
   return (
     <div className="absolute bottom-4 left-4 z-[70] w-80 glass rounded-xl p-4 space-y-4">
@@ -48,19 +59,19 @@ export default function ControlsPanel() {
 
       <div className="space-y-3">
         <div className="flex gap-2">
-            <button
-              className="button-primary flex-1 text-xs"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              Upload MP3
-            </button>
-            <input
-              ref={fileInputRef}
-              onChange={onFileSelected}
-              type="file"
-              accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg"
-              className="hidden"
-            />
+          <button
+            className="button-primary flex-1 text-xs"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            Upload MP3
+          </button>
+          <input
+            ref={fileInputRef}
+            onChange={onFileSelected}
+            type="file"
+            accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg"
+            className="hidden"
+          />
           <button
             className="text-xs px-3 py-2 rounded-md bg-brand-700 hover:bg-brand-600 transition"
             onClick={togglePlay}
@@ -91,7 +102,7 @@ export default function ControlsPanel() {
       <div className="space-y-3">
         <RangeSlider
           label="Intensity"
-          min={0}
+            min={0}
           max={1}
           step={0.01}
           value={intensity}
@@ -116,11 +127,41 @@ export default function ControlsPanel() {
 
       <div className="pt-2 border-t border-white/10 space-y-2">
         <div className="text-xs font-semibold uppercase tracking-wider opacity-60">
+          Spatial Presets
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {presets.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => setSpatialPreset(p.id)}
+              className={`text-[10px] px-2 py-1 rounded border transition ${
+                spatialPreset === p.id
+                  ? "bg-gradient-to-r from-brand-500 to-brand-300 text-black font-semibold"
+                  : "border-brand-600/40 hover:border-brand-400/80"
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={restartSpatialPreset}
+          className="mt-1 w-full text-[11px] px-3 py-1.5 rounded bg-brand-700 hover:bg-brand-600 transition"
+        >
+          Restart Preset Motion
+        </button>
+        <p className="text-[10px] opacity-50 leading-snug">
+          Presets define multi-channel panner paths (16 nodes). Some evolve over time (e.g., Far Behind → Close).
+        </p>
+      </div>
+
+      <div className="pt-2 border-t border-white/10 space-y-2">
+        <div className="text-xs font-semibold uppercase tracking-wider opacity-60">
           Spotify
         </div>
         <input
           type="password"
-            placeholder="Paste OAuth Token"
+          placeholder="Paste OAuth Token"
           value={spotifyToken}
           onChange={(e) => setSpotifyToken(e.target.value)}
           className="w-full bg-black/40 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 ring-brand-400 placeholder:text-[10px]"
@@ -142,8 +183,7 @@ export default function ControlsPanel() {
           </button>
         </div>
         <p className="text-[10px] opacity-50 leading-snug">
-          Token must include: streaming user-read-playback-state
-          user-modify-playback-state user-read-email user-read-private
+          Scopes: streaming user-read-playback-state user-modify-playback-state user-read-email user-read-private
         </p>
       </div>
 

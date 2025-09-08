@@ -12,8 +12,7 @@ let currentProps = {};
 let analyserGetter = () => null;
 let intensityRef = 0.5;
 
-const tmpVec = new THREE.Vector3();
-const listener = new THREE.AudioListener(); // For possible future direct integration
+const listener = new THREE.AudioListener(); // optional for future direct audio in scene
 
 export function initScene(container, { skin, intensity, cameraMode, getAnalyser }) {
   scene = new THREE.Scene();
@@ -45,7 +44,6 @@ export function initScene(container, { skin, intensity, cameraMode, getAnalyser 
   dir.castShadow = false;
   scene.add(dir);
 
-  // Objects
   starfield = createStarfield();
   scene.add(starfield.group);
 
@@ -65,7 +63,6 @@ export function initScene(container, { skin, intensity, cameraMode, getAnalyser 
   seatedCameraTarget.position.set(0, 1.45, 0.2);
   scene.add(seatedCameraTarget);
 
-  // Controls stub for free fly
   freeFlyControls = createFreeFlyControls(camera, renderer.domElement);
 
   currentProps = { skin, intensity, cameraMode };
@@ -75,17 +72,11 @@ export function initScene(container, { skin, intensity, cameraMode, getAnalyser 
   window.addEventListener("scene:update", (e) => {
     const d = e.detail;
     currentProps = { ...currentProps, ...d };
-    intensityRef = d.intensity ?? intensityRef;
+    if (typeof d.intensity === "number") intensityRef = d.intensity;
     updateSkins();
   });
 
   animate();
-
-  return {
-    updateProps: (p) => {
-      currentProps = { ...currentProps, ...p };
-    }
-  };
 }
 
 function updateSkins() {
@@ -109,7 +100,7 @@ function animate() {
     starfield.update(dt, analyser.array, level, intensityRef);
   }
 
-  // Camera handling
+  // Camera
   if (currentProps.cameraMode === "seated") {
     const targetPos = seatedCameraTarget.position;
     camera.position.lerp(
@@ -195,7 +186,6 @@ function createFreeFlyControls(camera, dom) {
     if (state.keys["ShiftLeft"]) state.dir.y -= 1;
     if (state.dir.lengthSq() > 0) state.dir.normalize();
 
-    // Transform direction by camera orientation
     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
     const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
     const up = new THREE.Vector3(0, 1, 0);

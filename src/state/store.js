@@ -15,7 +15,12 @@ const useStoreBase = create((set) => ({
   audioMode: "None",
   setAudioMode: (audioMode) => set({ audioMode }),
   isAnalyserActive: false,
-  setAnalyserActive: (isAnalyserActive) => set({ isAnalyserActive })
+  setAnalyserActive: (isAnalyserActive) => set({ isAnalyserActive }),
+  spatialPreset: "orbit",
+  setSpatialPreset: (spatialPreset) => set({ spatialPreset }),
+  presetVersion: 0,
+  restartPreset: () =>
+    set((s) => ({ presetVersion: s.presetVersion + 1 })) // triggers re-init within audio engine
 }));
 
 const AppStateContext = createContext(null);
@@ -26,7 +31,7 @@ export function AppStateProvider({ children }) {
     storeRef.current = useStoreBase;
   }
 
-  // Simple FPS meter
+  // FPS meter
   useEffect(() => {
     let last = performance.now();
     let frames = 0;
@@ -38,9 +43,7 @@ export function AppStateProvider({ children }) {
       frames++;
       accum += dt;
       if (accum >= 1000) {
-        storeRef.current
-          .getState()
-          .setFps(frames * (1000 / accum));
+        storeRef.current.getState().setFps(frames * (1000 / accum));
         frames = 0;
         accum = 0;
       }
@@ -50,7 +53,6 @@ export function AppStateProvider({ children }) {
     return () => cancelAnimationFrame(rafId);
   }, []);
 
-  // Return without JSX to avoid Vite parse errors in .js files
   return React.createElement(
     AppStateContext.Provider,
     { value: storeRef.current },

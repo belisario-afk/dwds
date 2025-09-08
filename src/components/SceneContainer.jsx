@@ -10,7 +10,7 @@ export default function SceneContainer() {
 
   useEffect(() => {
     if (!mountRef.current) return;
-    const { updateProps } = initScene(mountRef.current, {
+    initScene(mountRef.current, {
       skin,
       intensity,
       cameraMode,
@@ -28,7 +28,6 @@ export default function SceneContainer() {
     };
   }, []);
 
-  // Update props
   useEffect(() => {
     window.dispatchEvent(
       new CustomEvent("scene:update", {

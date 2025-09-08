@@ -1,46 +1,66 @@
+import { buildSpatialPreset } from "./spatialPresets.js";
+
+/**
+ * Base analyser & gain graph.
+ */
 export function createAudioGraph(audioCtx) {
   const analyser = audioCtx.createAnalyser();
-  analyser.fftSize = 512;
-  analyser.smoothingTimeConstant = 0.7;
+  analyser.fftSize = 1024;
+  analyser.smoothingTimeConstant = 0.65;
+
   const gainNode = audioCtx.createGain();
-  gainNode.gain.value = 1.0;
+  gainNode.gain.value = 1;
+
   const masterOut = audioCtx.createGain();
+  masterOut.gain.value = 0.95;
+
   gainNode.connect(analyser);
   analyser.connect(masterOut);
   masterOut.connect(audioCtx.destination);
+
   return { analyser, gainNode, masterOut };
 }
 
 /**
- * Simulated 16D (multi-orbital) panner system.
- * We create multiple PannerNodes orbiting listener with cascading lat/long & vertical offsets.
+ * 16-channel spatial panner system with presets.
  */
-export function create16DPannerSystem(audioCtx, destination) {
-  const ORBIT_COUNT = 8; // doubling with reflections
+export function create16DPannerSystem(audioCtx, destination, getPresetId) {
+  const CHANNELS = 16;
   const panners = [];
   const sources = [];
   const groupGain = audioCtx.createGain();
-  groupGain.gain.value = 0.9;
+  groupGain.gain.value = 1;
   groupGain.connect(destination);
 
-  for (let i = 0; i < ORBIT_COUNT; i++) {
+  for (let i = 0; i < CHANNELS; i++) {
     const p = audioCtx.createPanner();
     p.panningModel = "HRTF";
     p.distanceModel = "inverse";
     p.refDistance = 1;
-    p.maxDistance = 50;
-    p.rolloffFactor = 1;
+    p.maxDistance = 80;
+    p.rolloffFactor = 1.05;
     p.coneInnerAngle = 360;
     p.coneOuterAngle = 0;
     p.coneOuterGain = 0;
+    p.positionX.value = 0;
+    p.positionY.value = 0;
+    p.positionZ.value = 0;
     p.connect(groupGain);
     panners.push(p);
   }
 
+  let activePresetController = buildSpatialPreset(getPresetId());
+  activePresetController.init?.();
+
+  function reinitPreset(id) {
+    activePresetController = buildSpatialPreset(id);
+    activePresetController.init?.();
+  }
+
   function connectSource(bufferSource) {
-    // Create parallel sends for each panner
     for (let i = 0; i < panners.length; i++) {
       const gainTap = audioCtx.createGain();
+      // Balanced distribution (optionally weight center channels differently per preset)
       gainTap.gain.value = 1 / panners.length;
       bufferSource.connect(gainTap);
       gainTap.connect(panners[i]);
@@ -48,24 +68,21 @@ export function create16DPannerSystem(audioCtx, destination) {
     }
   }
 
-  let timeStart = audioCtx.currentTime;
+  let lastPresetId = getPresetId();
 
-  function update(intensity) {
-    const t = audioCtx.currentTime - timeStart;
-    const baseRadius = 2.5 + intensity * 4;
-    const verticalRange = 1.5 + intensity * 2.5;
-
-    panners.forEach((p, i) => {
-      const phase = t * (0.15 + (i * 0.02 + intensity * 0.3));
-      const angle = phase + (Math.PI * 2 * i) / panners.length;
-      const yOsc = Math.sin(phase * 0.7 + i) * 0.5;
-      const radiusMod = baseRadius * (0.9 + 0.15 * Math.sin(phase * 0.5 + i));
-      const x = Math.cos(angle) * radiusMod;
-      const z = Math.sin(angle) * radiusMod;
-      const y = yOsc * verticalRange * (i % 2 === 0 ? 1 : -1);
-      p.setPosition(x, y, z);
-    });
+  function update(intensity, analyserLevel, dt) {
+    const currentId = getPresetId();
+    if (currentId !== lastPresetId) {
+      lastPresetId = currentId;
+      reinitPreset(currentId);
+    }
+    activePresetController.update(
+      panners,
+      dt,
+      intensity,
+      analyserLevel
+    );
   }
 
-  return { connectSource, update };
+  return { connectSource, update, reinitPreset };
 }

@@ -56,14 +56,9 @@ export class SpotifyManager {
 
     await this.player.connect();
 
-    // Attempt to transfer playback to this device
     setTimeout(() => {
       this.transferPlayback();
     }, 1200);
-
-    // We cannot route Spotify's internal audio directly through WebAudio reliably without hacks;
-    // For demonstration we mimic panner motion by hooking into analyser placeholder (not live audio).
-    // In production you could capture via MediaElement + captureStream with user permission and feed to pannerSystem.
   }
 
   async transferPlayback() {

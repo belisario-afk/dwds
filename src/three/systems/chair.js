@@ -3,7 +3,6 @@ import * as THREE from "three";
 export function createChair() {
   const group = new THREE.Group();
 
-  // Procedural "futuristic chair" (abstract)
   const seatGeo = new THREE.BoxGeometry(0.9, 0.15, 0.9);
   const backGeo = new THREE.BoxGeometry(0.9, 1.2, 0.15);
   backGeo.translate(0, 0.6, -0.35);
@@ -29,7 +28,6 @@ export function createChair() {
 
   group.add(seat, back, armL, armR);
 
-  // Glowing accent lines
   const edges = new THREE.EdgesGeometry(seatGeo);
   const lineMat = new THREE.LineBasicMaterial({ color: "#60a5fa", linewidth: 2 });
   const line = new THREE.LineSegments(edges, lineMat);

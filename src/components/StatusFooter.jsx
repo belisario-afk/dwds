@@ -2,7 +2,7 @@ import React from "react";
 import { useAppState } from "../state/store.js";
 
 export default function StatusFooter() {
-  const { fps, audioMode, isAnalyserActive } = useAppState();
+  const { fps, audioMode, isAnalyserActive, spatialPreset } = useAppState();
 
   return (
     <div className="absolute bottom-3 right-4 z-[70] text-[10px] font-mono bg-black/40 rounded-md px-3 py-2 leading-tight space-y-1">
@@ -19,6 +19,10 @@ export default function StatusFooter() {
         <span className={isAnalyserActive ? "text-emerald-300" : "text-rose-300"}>
           {isAnalyserActive ? "Active" : "Idle"}
         </span>
+      </div>
+      <div className="flex gap-2">
+        <span className="opacity-60">Preset:</span>
+        <span className="text-brand-300">{spatialPreset}</span>
       </div>
     </div>
   );

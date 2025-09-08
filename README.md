@@ -1,74 +1,85 @@
 # 🎶 The Immersive Music Room (16D Sound Chamber)
 
-A fully interactive 3D WebGL experience combining:
-- Three.js driven immersive chamber
-- Simulated 16D multi-orbital spatial audio (Web Audio API)
-- Music from local MP3 upload or Spotify Web Playback SDK
-- Reactive visualizations (walls, beams, floor ripple, starfield)
-- React + TailwindCSS UI overlays
-- GitHub Pages automatic deployment via Actions
+Enhanced version with advanced 16‑channel spatial audio presets.
+
+## ✨ What's New (v1.1.0)
+- True 16-channel multi-orbital panner network (was 8)
+- Spatial Preset System:
+  - `Orbit (Default)` – original swirling multi-ring orbit
+  - `Inside You` – ultra-near “internal” psychoacoustic clustering
+  - `Far Behind → Close` – dramatic approach from ~6m behind listener toward center & back
+  - `Ascending Spiral` – vertical helix ascent
+  - `Pulse In-Out` – breathing radial modulation
+- UI selector + “Restart Preset Motion” button
+- Expanded FFT (1024) for smoother spectral envelope
+- More stable time-delta based motion paths
+- Readme & version update
 
 ---
 
-## ✅ Recent Fix (Build Error: "Could not resolve entry module 'index.html'")
-If you encountered:
-```
-Could not resolve entry module "index.html"
-```
-The cause was that `index.html` was previously inside `public/`.  
-Vite requires `index.html` at the project root.
+## 🚀 Features
 
-Applied Fixes:
-1. Moved `public/index.html` → `./index.html`
-2. Updated asset & script paths to **relative** (`assets/icon.svg`, `src/index.js`)
-3. Set `base: "./"` in `vite.config.js` for GitHub Pages compatibility
-4. Ensure Tailwind scans the root `index.html`
-
-If updating an existing clone:  
-- Delete `public/index.html`  
-- Add the new root-level `index.html` (see repository)  
-- Re-run: `npm run dev` or `npm run build`
+| Area        | Description |
+|-------------|-------------|
+| 16D Audio   | 16 independent `PannerNode`s animated by configurable spatial presets. |
+| Presets     | Re-initializable motion controllers with evolving distance/height envelopes. |
+| Visuals     | Shader walls, reactive beams, starfield, ripple floor, procedural chair. |
+| Audio Input | MP3 upload or Spotify Web Playback (Premium + token). |
+| UI          | Skins, intensity, camera modes, spatial preset selection. |
+| Performance | Analyser-driven updates, minimal allocations, dynamic path math. |
+| Deployment  | Automatic via GitHub Pages workflow. |
 
 ---
 
-## 📁 Project Structure
+## 🧠 16-Channel Spatial Engine
 
+Each preset defines:
 ```
-immersive-music-room/
-  index.html                # <-- Root Vite entry
-  .github/workflows/deploy.yml
-  public/
-    assets/
-      icon.svg
-    robots.txt
-  src/
-    App.jsx
-    index.js
-    components/
-    audio/
-    three/
-    state/
-    styles/
-  package.json
-  tailwind.config.js
-  vite.config.js
-  README.md
+init() -> sets starting state
+update(panners[], dt, intensity, analyserLevel)
 ```
 
-(Other sections unchanged from previous version; see earlier README for complete details.)
+Common illusions:
+- Depth travel: z-axis interpolation with eased exponential approach.
+- Internal sensation: extremely small radii + high swirl rate.
+- Spiral ascent: per-index progressive radius & vertical mapping.
+
+### Audio Graph
+```
+SourceBuffer
+  -> N taps (Gain: 1/N each)
+    -> PannerNode[i]
+       -> Group Gain
+          -> Analyser
+            -> Master Gain
+              -> Destination
+```
 
 ---
-## 🚀 Quick Start
+
+## 🎛 Spatial Presets
+
+| ID | Experience |
+|----|------------|
+| orbit | Balanced rotational field with vertical oscillation. |
+| inside_you | Ultra-close rotating micro-swarm (quasi bone-conduct feel). |
+| far_behind_to_close | Long approach cycle (≈18s) from -6m Z toward listener then retreat. |
+| spiral | Helical vertical climb; index-based radius scaling. |
+| pulse_in_out | Dynamic radial breathing synchronized to time and intensity. |
+
+Use "Restart Preset Motion" to re-trigger approach-style sequences.
+
+---
+
+## 🔧 Development
 
 ```bash
 npm install
 npm run dev
 ```
+Open: http://localhost:5173
 
-Open http://localhost:5173
-
-Build:
-
+Prod build:
 ```bash
 npm run build
 npm run preview
@@ -78,14 +89,35 @@ npm run preview
 
 ## 🌐 Deployment
 
-Push to `main` — GitHub Actions builds & deploys to Pages automatically.  
-Because `base: "./"` is used, assets resolve correctly under `/<user>/<repo>/`.
+Push to `main` → GitHub Actions builds & deploys to Pages.
+`base: "./"` ensures compatibility under repo subpath.
 
 ---
 
-## 🧠 Notes
+## 🎧 Spotify Usage
 
-If you later enable a custom domain for Pages, `base: "./"` continues to work.
+1. Acquire OAuth token (scopes: `streaming user-read-email user-read-private user-modify-playback-state user-read-playback-state`)
+2. Paste token → Connect
+3. Choose track in any client; playback transfers automatically (if allowed)
+
+---
+
+## 🧪 Future Spatial Ideas (Optional Upgrades)
+- Convolution IR presets for environment sense
+- Dynamic pattern cycling with event scripting
+- Partial ambisonic decode for height realism
+- Doppler micro-accents (subtle playbackRate modulation)
+
+---
+
+## 🐞 Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| "Enable Audio" needed | Click button (browser gesture requirement). |
+| Spotify silent | Ensure Premium token + device transfer success. |
+| Preset seems static | Restart preset or pick different intensity. |
+| Performance dips | Lower intensity or switch to Seated camera. |
 
 ---
 
@@ -93,4 +125,4 @@ If you later enable a custom domain for Pages, `base: "./"` continues to work.
 
 MIT © 2025
 
-Enjoy the chamber. 🌌
+Enjoy the expanded chamber & dimensional presets. 🌌

@@ -14,13 +14,22 @@ export function useAudioEngine() {
   const audioCtxRef = useRef(null);
   const sourceRef = useRef(null);
   const bufferRef = useRef(null);
-  const analyserData = useRef({ array: new Uint8Array(256), level: 0 });
+  const analyserData = useRef({ array: new Uint8Array(1024), level: 0 });
   const analyserRef = useRef(null);
   const pannerSystemRef = useRef(null);
   const spotifyRef = useRef(null);
   const frameRef = useRef(0);
+  const lastTimeRef = useRef(performance.now());
 
-  const { intensity, setAudioMode, spotifyToken, setAnalyserActive } = useAppState();
+  const {
+    intensity,
+    setAudioMode,
+    spotifyToken,
+    setAnalyserActive,
+    spatialPreset,
+    presetVersion,
+    restartPreset
+  } = useAppState((s) => s);
 
   const initUserAudio = useCallback(async () => {
     try {
@@ -35,7 +44,11 @@ export function useAudioEngine() {
       if (!analyserRef.current) {
         const { analyser, gainNode, masterOut } = createAudioGraph(audioCtxRef.current);
         analyserRef.current = analyser;
-        pannerSystemRef.current = create16DPannerSystem(audioCtxRef.current, masterOut);
+        pannerSystemRef.current = create16DPannerSystem(
+          audioCtxRef.current,
+          masterOut,
+          () => spatialPreset
+        );
       }
       setIsReady(true);
       setAudioMode("Local");
@@ -43,7 +56,7 @@ export function useAudioEngine() {
     } catch (e) {
       setError(e.message);
     }
-  }, [setAudioMode, setAnalyserActive]);
+  }, [setAudioMode, setAnalyserActive, spatialPreset]);
 
   const stopExistingSource = () => {
     try {
@@ -102,7 +115,6 @@ export function useAudioEngine() {
     }
   };
 
-  // Spotify integration
   const connectSpotifyPlayback = async () => {
     if (!spotifyToken) {
       setError("Spotify token required.");
@@ -137,11 +149,21 @@ export function useAudioEngine() {
     setIsPlaying(false);
   };
 
-  // Per-frame analyser
+  // Restart preset motion externally
+  const restartSpatialPreset = () => {
+    // bumping presetVersion in store triggers new build on next frame (handled in update loop)
+    restartPreset();
+  };
+
+  // Per-frame analyser & panner update
   useEffect(() => {
     let mounted = true;
     function update() {
       if (!mounted) return;
+      const now = performance.now();
+      const dt = (now - lastTimeRef.current) / 1000;
+      lastTimeRef.current = now;
+
       if (analyserRef.current) {
         analyserRef.current.getByteFrequencyData(analyserData.current.array);
         let sum = 0;
@@ -149,7 +171,11 @@ export function useAudioEngine() {
         for (let i = 0; i < arr.length; i++) sum += arr[i];
         analyserData.current.level = sum / (arr.length * 255);
         if (pannerSystemRef.current) {
-          pannerSystemRef.current.update(intensity);
+          pannerSystemRef.current.update(
+            intensity,
+            analyserData.current.level,
+            dt
+          );
         }
       }
       frameRef.current = requestAnimationFrame(update);
@@ -159,7 +185,7 @@ export function useAudioEngine() {
       mounted = false;
       cancelAnimationFrame(frameRef.current);
     };
-  }, [intensity]);
+  }, [intensity, spatialPreset, presetVersion]);
 
   return {
     isReady,
@@ -172,6 +198,7 @@ export function useAudioEngine() {
     connectSpotifyPlayback,
     disconnectSpotify,
     currentTrack,
-    isSpotifyActive
+    isSpotifyActive,
+    restartSpatialPreset
   };
 }
